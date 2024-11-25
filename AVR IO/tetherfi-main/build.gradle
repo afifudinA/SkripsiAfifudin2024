@@ -1,0 +1,165 @@
+/*
+ * Copyright 2021 Peter Kenji Yamanaka
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+  ext {
+    // SDK
+    minSdk = 24
+    targetSdk = 34
+    compileSdk = 34
+
+    // Kotlin
+    kotlin = "1.9.22"
+    coroutines = "1.8.0"
+
+    // Us
+    pydroid = "26.9.4"
+
+    // Leak Canary
+    leakCanary = "2.13"
+
+    // Dagger
+    dagger = "2.50"
+
+    // Compose
+    compose = "1.6.2"
+    composeCompiler = "1.5.10"
+    composeMaterial = "1.6.2"
+    composeActivity = "1.8.2"
+
+    accompanist = "0.34.0"
+
+    desugar = "2.0.4"
+
+    // Testing
+    testRunner = "1.5.2"
+  }
+}
+
+plugins {
+  // Android AGP
+  // https://developer.android.com/studio/build#top-level
+  id("com.android.library") version "8.3.0" apply false
+
+  // Fix Android build cache
+  // https://github.com/gradle/android-cache-fix-gradle-plugin
+  id("org.gradle.android.cache-fix") version "3.0.1" apply false
+
+  // Kotlin
+  // https://developer.android.com/studio/build#top-level
+  id("org.jetbrains.kotlin.android") version "${kotlin}" apply false
+
+  // Gradle version checker
+  // https://github.com/ben-manes/gradle-versions-plugin
+  id("com.github.ben-manes.versions") version "0.51.0" apply false
+
+  // Version Filter Plugin
+  // https://github.com/janderssonse/gradle-versions-filter-plugin
+  id("se.ascp.gradle.gradle-versions-filter") version "0.1.16" apply false
+
+  // Spotless
+  // https://github.com/diffplug/spotless
+  id("com.diffplug.spotless") version "6.25.0" apply false
+
+  // KSP
+  // https://github.com/google/ksp
+  id("com.google.devtools.ksp") version "${kotlin}-1.0.17" apply false
+
+  // Gradle Doctor
+  // https://runningcode.github.io/gradle-doctor/
+  id("com.osacky.doctor") version "0.9.2" apply true
+}
+
+subprojects {
+  // If this project has an Android plugin applied
+  plugins.withType(com.android.build.gradle.api.AndroidBasePlugin) {
+    project.apply plugin: "org.gradle.android.cache-fix"
+    project.apply plugin: "kotlin-android"
+    project.apply plugin: "kotlin-kapt"
+
+    // Configure matching toolchains
+    // https://kotlinlang.org/docs/gradle-configure-project.html#2c42d1dc
+    kotlin {
+      jvmToolchain(17)
+    }
+    java {
+      toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+      }
+    }
+  }
+}
+
+allprojects {
+  apply plugin: "com.diffplug.spotless"
+  apply plugin: "com.github.ben-manes.versions"
+  apply plugin: "se.ascp.gradle.gradle-versions-filter"
+
+  repositories {
+    mavenLocal()
+    gradlePluginPortal()
+    google()
+    mavenCentral()
+
+    // Jitpack
+    maven {
+      setUrl("https://jitpack.io")
+      content {
+        includeGroup("com.github.pyamsoft.pydroid")
+        includeGroup("com.github.pyamsoft")
+      }
+    }
+  }
+
+  // Java compile show
+  tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+      "-Xlint:unchecked",
+      "-Xlint:deprecation"
+    ]
+    options.deprecation = true
+  }
+
+  // Spotless plugin
+  spotless {
+    java {
+      target("src/**/*.java")
+
+      removeUnusedImports()
+      trimTrailingWhitespace()
+      endWithNewline()
+      indentWithSpaces(2)
+    }
+    kotlin {
+      target("src/**/*.kt", "*.kts")
+      ktfmt()
+
+      trimTrailingWhitespace()
+      endWithNewline()
+      indentWithSpaces(2)
+    }
+    groovyGradle {
+      target("*.gradle")
+      greclipse()
+
+      trimTrailingWhitespace()
+      endWithNewline()
+      indentWithSpaces(2)
+    }
+  }
+}
