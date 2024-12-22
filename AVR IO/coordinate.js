@@ -20,3 +20,6 @@ fs.createReadStream('coordinate.csv')
       console.log('Output has been written to output.txt');
     });
   });
+
+
+  

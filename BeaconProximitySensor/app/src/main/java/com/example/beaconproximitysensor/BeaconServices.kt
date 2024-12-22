@@ -103,7 +103,8 @@ class BeaconService : Service() {
                 for (beacon in beacons) {
                     // Check if the beacon's Bluetooth address matches the desired IDs
                     if (beacon.bluetoothAddress == "FB:FD:2A:A8:E2:BE" ||
-                        beacon.bluetoothAddress == "F2:AB:73:19:59:79") {
+                        beacon.bluetoothAddress == "F2:AB:73:19:59:79" ||
+                        beacon.bluetoothAddress == "51:00:24:08:05:32") {
                         val timestamp = getCurrentUnixTimestamp()
 
                         // Create the payload object
@@ -133,10 +134,10 @@ class BeaconService : Service() {
                         )
 
                         // Send the object directly if your logic allows
-                        sendBroadcast(beaconPayload.toString())
+                        sendBroadcast(beaconPayload.payload.toString())
                         sendBeaconDataToServer(beaconPayload)
 
-                        // Stop scanning and start cooldown period of 10 seconds
+                        // Stop scanning and start scooldown period of 10 seconds
                         stopScanning()
 
                         handler.postDelayed({
@@ -214,7 +215,6 @@ class BeaconService : Service() {
             }
         })
     }
-
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
